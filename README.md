@@ -10,23 +10,24 @@
 
 <p align="center">
   <a href="https://gas.nithishkps.workers.dev">
-    <img src="https://img.shields.io/badge/🚀_Live_Demo-ff6b2b?style=for-the-badge&logoColor=white" alt="Live Demo">
+    <img src="https://img.shields.io/badge/LIVE_DEMO-FF4757?style=plastic&logoColor=white&logo=rocket" alt="Live Demo">
   </a>
   <a href="#-quick-start">
-    <img src="https://img.shields.io/badge/⚡_Quick_Start-0d0f14?style=for-the-badge&logoColor=white" alt="Quick Start">
+    <img src="https://img.shields.io/badge/⚡_QUICK_START-2ED573?style=plastic&logoColor=white&logo=bolt" alt="Quick Start">
   </a>
   <a href="#-features">
-    <img src="https://img.shields.io/badge/✨_Features-ff9a3c?style=for-the-badge&logoColor=white" alt="Features">
+    <img src="https://img.shields.io/badge/✨_FEATURES-FFD700?style=plastic&logoColor=white&logo=sparkles" alt="Features">
   </a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Flask-2.3-000000?style=flat-square&logo=flask&logoColor=white" />
-  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" />
-  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" />
-  <img src="https://img.shields.io/badge/License-MIT-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=plastic&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Flask-2.3-FF6B6B?style=plastic&logo=flask&logoColor=white" />
+  <img src="https://img.shields.io/badge/MySQL-8.0-845EC2?style=plastic&logo=mysql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-Compose-1F77D2?style=plastic&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-MIT-00D9FF?style=plastic" />
 </p>
+
 
 </div>
 
@@ -50,41 +51,49 @@
 
 ## ✨ Features
 
-<table>
+<table style="background-color: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
 <tr>
-<td width="50%" valign="top">
+<td width="50%" valign="top" style="background-color: #ffffff; padding: 20px; border-radius: 8px;">
 
 ### 🎨 **Modern Interface**
+<span style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; display: block;">
 - Gemini-inspired clean layout
 - Fluid **Day / Night** theme toggle
 - Collapsible 3-dot sidebar
 - Top-right profile dropdown
 - Fully responsive across devices
 - CSS variable-driven theming
+</span>
 
 ### 👥 **Customer Management**
+<span style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; display: block;">
 - Full CRUD with live validation
 - Auto-generated customer IDs
 - Loyalty tracking (bookings & spend)
 - Search by name, phone, or ID
 - Click-to-view detail modal
+</span>
 
 </td>
-<td width="50%" valign="top">
+<td width="50%" valign="top" style="background-color: #ffffff; padding: 20px; border-radius: 8px;">
 
 ### 📦 **Booking & Delivery**
+<span style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; display: block;">
 - Create cylinder orders in seconds
 - Assign delivery personnel
 - Status pipeline: `Pending → Confirmed → Out → Delivered`
 - Auto-calculated pricing
 - **PDF Invoice** download & print
+</span>
 
 ### 📊 **Smart Analytics**
+<span style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; display: block;">
 - Real-time dashboard metrics
 - Monthly revenue trends
 - Low-stock warnings
 - 1-click inventory restock
 - Interactive sortable tables
+</span>
 
 </td>
 </tr>
@@ -94,7 +103,10 @@
 
 ## 🛠️ Tech Stack
 
-<div align="center">
+<div align="center" style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+<table style="background-color: #ffffff;">
+<tr style="background-color: #f9f9f9;">
 
 | Layer        | Technology                                                   |
 | :----------- | :----------------------------------------------------------- |
@@ -104,21 +116,28 @@
 | **DevOps**   | Docker · Docker Compose · Gunicorn-ready                     |
 | **Extras**   | jsPDF · html2canvas · python-dotenv                          |
 
+</tr>
+</table>
+
 </div>
 
 ---
 
 ## 🚀 Quick Start
 
+<div align="center" style="background-color: #ffffff; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
 GasBook can run in **three flexible ways** — pick what suits your environment.
 
-<div align="center">
+<div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; display: inline-block;">
 
 | Method | Best For | Setup Time |
 | :----- | :------- | :--------: |
 | 🐳 **Docker Compose** | Production / Quick demo | ~30 sec |
 | 🧱 **Manual Docker** | Custom port / DB control | ~2 min |
 | 🐍 **Local Python** | Active development | ~5 min |
+
+</div>
 
 </div>
 
@@ -398,76 +417,108 @@ $env:FLASK_PORT=8080; python app.py
 
 ## 🔌 API Endpoints
 
-<details>
-<summary><b>📚 View all routes</b></summary>
+<div align="center">
 
-| Method  | Endpoint                        | Purpose                  |
-| :------ | :------------------------------ | :----------------------- |
-| `POST`  | `/api/login`                    | Authenticate user        |
-| `POST`  | `/api/register`                 | Create customer account  |
-| `POST`  | `/api/logout`                   | End session              |
-| `GET`   | `/api/profile`                  | Fetch logged-in profile  |
-| `PUT`   | `/api/profile`                  | Update profile           |
-| `GET`   | `/api/customers`                | List customers           |
-| `POST`  | `/api/customers`                | Add customer             |
-| `PUT`   | `/api/customers/<id>`           | Update customer          |
-| `DELETE`| `/api/customers/<id>`           | Delete customer          |
-| `GET`   | `/api/bookings`                 | List bookings            |
-| `POST`  | `/api/bookings`                 | Create booking           |
-| `PUT`   | `/api/bookings/<id>/status`     | Update booking status    |
-| `GET`   | `/api/inventory`                | View stock levels        |
-| `POST`  | `/api/inventory/restock`        | Add stock                |
-| `GET`   | `/api/analytics/dashboard`      | Dashboard metrics        |
-| `GET`   | `/api/health`                   | Server health check      |
+<details>
+<summary><b>🚀 Click to expand all routes</b></summary>
+
+```
+╔══════════════════════════════════════════════════════════╗
+║            🔌 COMPLETE REST API REFERENCE                ║
+╠══════════════════════════════════════════════════════════╣
+║ AUTH ENDPOINTS                                           ║
+├─ POST   /api/login               → Authenticate         ║
+├─ POST   /api/register            → Create Account       ║
+├─ POST   /api/logout              → End Session          ║
+║                                                          ║
+║ PROFILE ENDPOINTS                                        ║
+├─ GET    /api/profile             → Fetch Profile        ║
+├─ PUT    /api/profile             → Update Profile       ║
+║                                                          ║
+║ CUSTOMER MANAGEMENT                                      ║
+├─ GET    /api/customers           → List All             ║
+├─ POST   /api/customers           → Create New           ║
+├─ PUT    /api/customers/<id>      → Update               ║
+├─ DELETE /api/customers/<id>      → Delete               ║
+║                                                          ║
+║ BOOKING SYSTEM                                           ║
+├─ GET    /api/bookings            → View All             ║
+├─ POST   /api/bookings            → Create Order         ║
+├─ PUT    /api/bookings/<id>/status → Update Status       ║
+║                                                          ║
+║ INVENTORY & ANALYTICS                                    ║
+├─ GET    /api/inventory           → Stock Levels         ║
+├─ POST   /api/inventory/restock   → Add Stock            ║
+├─ GET    /api/analytics/dashboard → Metrics              ║
+├─ GET    /api/health              → Server Status        ║
+╚══════════════════════════════════════════════════════════╝
+```
 
 </details>
+
+</div>
 
 ---
 
 ## 🧠 Self-Healing Database
 
-GasBook ships with intelligent recovery logic. On every startup, `app.py`:
+```
+GasBook automatically:
+  ✓ Verifies database schema on startup
+  ✓ Creates tables if missing via init.sql
+  ✓ Migrates legacy database structures
+  ✓ Relinks orphaned user records
+  ✓ Maintains data integrity
 
-1. 🔍 Verifies the `users` table exists
-2. 🔧 Auto-runs `init.sql` if tables are missing
-3. 🔄 Migrates legacy schemas (adds `customer/member` role support, `customer_id` column)
-4. 🔗 Relinks orphaned user-customer records
-
-> **Result:** No manual DB setup required — even across container rebuilds.
+→ Result: Zero manual database setup needed!
+```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions make open-source thrive! 🌱
+<div align="center">
 
 ```bash
-# 1. Fork the repo
-# 2. Create your feature branch
+# 🔗 Fork → Clone → Create Branch
+
 git checkout -b feature/amazing-feature
-
-# 3. Commit your changes
 git commit -m "✨ Add amazing feature"
-
-# 4. Push & open a PR
 git push origin feature/amazing-feature
+
+# → Open Pull Request
 ```
 
-Found a bug? [**Open an issue →**](https://github.com/NITHISHKUMAR006/Gas-Booking-System/issues)
+[🐛 Found a bug?](https://github.com/NITHISHKUMAR006/Gas-Booking-System/issues)
+
+</div>
 
 ---
 
 ## 📄 License
 
-Released under the **MIT License** — free to use, modify, and distribute.
+<div align="center">
+
+```
+MIT License © 2025
+
+Free to use, modify, and distribute!
+```
+
+</div>
 
 ---
 
 <div align="center">
 
-### ⭐ If GasBook helped you, consider starring the repo!
+### 🌟 Show your support by starring this repo!
 
-<sub>Built with 🔥 by <a href="https://github.com/NITHISHKUMAR006">NithishKPS</a> · Powered by Flask & MySQL</sub>
+```
+╔════════════════════════════════════════════════════════╗
+║  Built with 🔥 by NITHISHKUMAR006                     ║
+║  Powered by: Python · Flask · MySQL · Docker          ║
+╚════════════════════════════════════════════════════════╝
+```
 
 ![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=100&section=footer)
 
