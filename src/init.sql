@@ -50,8 +50,8 @@ INSERT IGNORE INTO warehouses (name, location) VALUES
 -- ── Customers ──────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS customers (
     customer_id    VARCHAR(20)  PRIMARY KEY,
-    name           VARCHAR(100) NOT NULL,
-    phone          VARCHAR(15)  NOT NULL UNIQUE,
+    name           VARCHAR(100),
+    phone          VARCHAR(15)  UNIQUE,
     email          VARCHAR(100),
     address        TEXT,
     aadhar_no      VARCHAR(20),

@@ -29,5 +29,5 @@ EXPOSE 5002
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5002/api/health')" || exit 1
 
-# Start the application via startup script
-CMD ["bash", "start.sh"]
+# Run with gunicorn in production, flask dev server fallback
+CMD ["python", "app.py"]

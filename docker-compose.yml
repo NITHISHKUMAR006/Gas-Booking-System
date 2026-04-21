@@ -4,27 +4,28 @@
 #  External access: http://localhost:5002
 # ─────────────────────────────────────────────────────────────────────────────
 
-version: "3.9"
 
 services:
 
   # ── MySQL Database ─────────────────────────────────────────────────────────
   db:
-    image: mysql:8.0
-    container_name: gasbook_db
-    restart: unless-stopped
-    # FIX: hardcode MySQL env vars directly — env_file values are NOT available
-    #      for ${VAR} interpolation in the same compose file (host-shell only).
+    image: "mysql:8.0"
+    container_name: "gasbook_db"
+    restart: "unless-stopped"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE:      gasbook
-      MYSQL_USER:          gasbook_user
-      MYSQL_PASSWORD:      gasbook_pass
+      MYSQL_ROOT_PASSWORD : "rootpassword"
+      MYSQL_DATABASE      : "gasbook"
+      MYSQL_USER          : "gasbook_user"
+      MYSQL_PASSWORD      : "gasbook_pass"
+      TZ                  : "Asia/Kolkata"
+    command:
+      - "--default-time-zone=+05:30"
+      - "--default-authentication-plugin=caching_sha2_password"
     volumes:
-      - gasbook_mysql_data:/var/lib/mysql
-      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - "gasbook_mysql_data:/var/lib/mysql"
+      - "./src/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"
     ports:
-      - "3306:3306"   # FIX: host 3306 → container 3306 (MySQL always listens on 3306 internally)
+      - "3306:3306"
     networks:
       - gasbook_net
     healthcheck:
@@ -44,11 +45,12 @@ services:
     env_file:
       - config.env
     environment:
-      MYSQL_HOST:     db           # internal Docker network hostname
-      MYSQL_PORT:     "3306"       # always 3306 inside Docker network
-      FLASK_PORT:     "5002"
+      MYSQL_HOST : "db"
+      MYSQL_PORT : "3306"
+      FLASK_PORT : "5002"
+      TZ         : "Asia/Kolkata" 
     ports:
-      - "5002:5002"   # external port 5002 → internal 5002
+      - "5002:5002" 
     depends_on:
       db:
         condition: service_healthy
