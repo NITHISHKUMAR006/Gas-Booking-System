@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://gas.nithishkps.workers.dev">
-    <img src="https://img.shields.io/badge/LIVE_DEMO-FF4757?style=plastic&logoColor=white&logo=rocket" alt="Live Demo"  width="120">
+    <img src="https://img.shields.io/badge/LIVE_DEMO-2ED573?style=plastic&logoColor=white&logo=rocket" width = "120" alt="Live Demo">
   </a>
 </p>
 
