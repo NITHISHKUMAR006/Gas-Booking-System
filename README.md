@@ -604,20 +604,20 @@ git commit -m "✨ Add amazing feature"
 git push origin feature/amazing-feature
 ```
 
-Found a bug? [**Open an issue →**](https://github.com/NITHISHKUMAR006/Gas-Booking-System/issues)
+- Found a bug? [**Open an issue**](https://github.com/NITHISHKUMAR006/Gas-Booking-System/issues)
 
 ---
 
 ## 📄 License
 
-Released under the **MIT License** — free to use, modify, and distribute.
+- Released under the **MIT License** — free to use, modify, and distribute.
 
 ---
 
 <div align="center">
 
 ### ⭐ If GasBook helped you, consider starring the repo!
-<br>
+
 Built with ❤️ by <b><a href="https://github.com/NITHISHKUMAR006">Nithishkumar S</a> 🔥</b>
 
 <a href="#"><img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=100&section=footer"/></a>
