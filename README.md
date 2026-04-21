@@ -130,7 +130,7 @@ Spin up the **full stack** (Flask app + MySQL) with a single command.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/gasbook.git
+git clone https://github.com/NITHISHKUMAR006/Gas-Booking-System gasbook
 cd gasbook
 
 # 2. Spin up all containers

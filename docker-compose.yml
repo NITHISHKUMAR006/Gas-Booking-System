@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-#  GasBook  |  docker-compose.yml
+#  Gas Booking System  |  docker-compose.yml
 #  Services: app (Flask) + db (MySQL 8)
 #  External access: http://localhost:5002
 # ─────────────────────────────────────────────────────────────────────────────
