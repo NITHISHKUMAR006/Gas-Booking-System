@@ -590,6 +590,9 @@ GasBook ships with intelligent recovery logic. On every startup, `app.py`:
 
 ## 🤝 Contributing
 
+<details>
+  <summary><strong>View All Contributing  <kbd>Click Here</kbd></strong></summary>
+
 Contributions make open-source thrive! 🌱
 
 ```bash
@@ -603,6 +606,7 @@ git commit -m "✨ Add amazing feature"
 # 4. Push & open a PR
 git push origin feature/amazing-feature
 ```
+</details>
 
 - Found a bug? [**Open an issue**](https://github.com/NITHISHKUMAR006/Gas-Booking-System/issues)
 
