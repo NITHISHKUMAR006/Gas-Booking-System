@@ -251,7 +251,7 @@ Run Flask **directly on your machine** — perfect for active development & debu
 #### **Step 1 — Clone & enter directory**
 
 ```bash
-git clone https://github.com/your-username/gasbook.git
+git clone https://github.com/NITHISHKUMAR006/Gas-Booking-System gasbook
 cd gasbook
 ```
 
@@ -382,7 +382,7 @@ $env:FLASK_PORT=8080; python app.py
 ## 📂 Project Structure
 
 ```text
-📦 gasbook/
+📦 Gas-Booking-System/
 ├── 📁 src/
 │   ├── 🌐 index.html          # Login + Signup page
 │   ├── 📊 dashboard.html      # Main dashboard UI
@@ -453,7 +453,7 @@ git commit -m "✨ Add amazing feature"
 git push origin feature/amazing-feature
 ```
 
-Found a bug? [**Open an issue →**](https://github.com/your-username/gasbook/issues)
+Found a bug? [**Open an issue →**](https://github.com/NITHISHKUMAR006/Gas-Booking-System/issues)
 
 ---
 
@@ -467,7 +467,7 @@ Released under the **MIT License** — free to use, modify, and distribute.
 
 ### ⭐ If GasBook helped you, consider starring the repo!
 
-<sub>Built with 🔥 by <a href="https://github.com/your-username">Nithish KPS</a> · Powered by Flask & MySQL</sub>
+<sub>Built with 🔥 by <a href="https://github.com/NITHISHKUMAR006">NithishKPS</a> · Powered by Flask & MySQL</sub>
 
 ![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=100&section=footer)
 
