@@ -10,13 +10,7 @@
 
 <p align="center">
   <a href="https://gas.nithishkps.workers.dev">
-    <img src="https://img.shields.io/badge/LIVE_DEMO-FF4757?style=plastic&logoColor=white&logo=rocket" alt="Live Demo">
-  </a>
-  <a href="#-quick-start">
-    <img src="https://img.shields.io/badge/⚡_QUICK_START-2ED573?style=plastic&logoColor=white&logo=bolt" alt="Quick Start">
-  </a>
-  <a href="#-features">
-    <img src="https://img.shields.io/badge/✨_FEATURES-FFD700?style=plastic&logoColor=white&logo=sparkles" alt="Features">
+    <img src="https://img.shields.io/badge/LIVE_DEMO-FF4757?style=plastic&logoColor=white&logo=rocket" alt="Live Demo"  width="120">
   </a>
 </p>
 
