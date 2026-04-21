@@ -610,7 +610,7 @@ git push origin feature/amazing-feature
 
 ## 📄 License
 
-- Released under the <b><a href="https://github.com/NITHISHKUMAR006/Gas-Booking-System/LICENSE">MIT License</a></b> — Free to Use, Modify, and Distribute.
+- Released under the <b><a href="https://github.com/NITHISHKUMAR006/Gas-Booking-System/blob/main/LICENSE">MIT License</a></b> — Free to Use, Modify, and Distribute.
 
 ---
 
