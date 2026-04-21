@@ -49,6 +49,8 @@
 
 ## ✨ Features
 
+<div align="center">
+
 <table>
 <tr>
 <td width="50%" valign="top">
@@ -89,6 +91,8 @@
 </tr>
 </table>
 
+</div>
+
 ---
 
 ## 🛠️ Tech Stack
@@ -104,6 +108,127 @@
 | **Extras**   | jsPDF · html2canvas · python-dotenv                          |
 
 </div>
+
+---
+
+## ⚙️ Prerequisites & Installation
+
+<details>
+  <summary><strong>View All Installation  <kbd>Click Here</kbd></strong></summary>
+
+
+Before you start, make sure you have the required tools installed. Choose your operating system below:
+
+### 🐳 Install Docker & Docker Compose
+
+<details>
+<summary><b>🪟 Windows</b></summary>
+
+#### Option 1: Docker Desktop (Recommended)
+1. Download [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
+2. Run the installer and follow the setup wizard
+3. Enable WSL 2 backend (recommended during installation)
+4. Restart your computer
+5. Open PowerShell and verify:
+```bash
+docker --version
+docker-compose --version
+```
+
+#### Option 2: Manual Installation
+```bash
+# Using Chocolatey (if installed)
+choco install docker-desktop docker-compose
+
+# Verify installation
+docker --version
+docker-compose --version
+```
+
+</details>
+
+<details>
+<summary><b>🐧 Linux (Ubuntu/Debian)</b></summary>
+
+#### Install Docker
+```bash
+# Update package manager
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+
+# Add Docker repository
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+# Install Docker
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Start Docker service
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Add user to docker group (optional - avoid sudo)
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+#### Install Docker Compose
+```bash
+# Download Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# Make it executable
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Verify installation
+docker-compose --version
+```
+
+</details>
+
+<details>
+<summary><b>🍎 macOS</b></summary>
+
+#### Option 1: Docker Desktop (Recommended)
+1. Download [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop)
+2. Open the `.dmg` file and drag Docker to Applications
+3. Launch Docker from Applications
+4. Open terminal and verify:
+```bash
+docker --version
+docker-compose --version
+```
+
+#### Option 2: Using Homebrew
+```bash
+# Install Homebrew if not already installed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Docker & Docker Compose
+brew install --cask docker
+brew install docker-compose
+
+# Verify
+docker --version
+docker-compose --version
+```
+
+</details>
+
+### ✅ Verify Installation
+
+After installing, run these commands in your terminal to confirm everything works:
+
+```bash
+# Check Docker version
+docker --version
+# Expected output: Docker version 20.10+
+
+# Check Docker Compose version
+docker-compose --version
+# Expected output: Docker Compose version 2.0+
+```
 
 ---
 
@@ -123,6 +248,8 @@ GasBook can run in **three flexible ways** — pick what suits your environment.
 
 ---
 
+<details>
+  
 ### 🐳 Option A — Docker Compose (Easiest)
 
 Spin up the **full stack** (Flask app + MySQL) with a single command.
@@ -141,7 +268,8 @@ http://localhost:5002
 
 > ✅ Auto-creates the database, seeds tables via `init.sql`, and starts Flask on **port 5002**.
 
-**Useful commands:**
+<details>
+<summary><b>Docker Compose - Useful commands:</b></summary>
 
 ```bash
 docker-compose logs -f app      # Live app logs
@@ -151,7 +279,9 @@ docker-compose down             # Stop & remove containers
 docker-compose down -v          # Stop + wipe DB volume
 docker-compose restart app      # Restart only the app
 ```
+</details>
 
+</details>
 ---
 
 ### 🧱 Option B — Manual Docker Build & Run
@@ -348,7 +478,7 @@ $env:FLASK_PORT=8080; python app.py
 ```
 
 </details>
-
+  
 <details>
 <summary><b>⚠️ Troubleshooting</b></summary>
 
@@ -359,6 +489,7 @@ $env:FLASK_PORT=8080; python app.py
 | `Port 5002 already in use` | Change `FLASK_PORT` in `config.env` |
 | `ModuleNotFoundError` | Re-run `pip install -r requirements.txt` inside venv |
 
+</details>
 </details>
 
 ---
@@ -466,7 +597,7 @@ Released under the **MIT License** — free to use, modify, and distribute.
 
 ### ⭐ If GasBook helped you, consider starring the repo!
 
-<p align="center">Built with 🔥 by <a href="https://github.com/NITHISHKUMAR006">NITHISHKUMAR S</a></p>
+<p align="center">Built with ❤️ by <b><a href="https://github.com/NITHISHKUMAR006">Nithishkumar S</a> 🔥</b></p>
 
 <p align="center">Powered by Flask & MySQL</p>
 
