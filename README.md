@@ -33,12 +33,11 @@
 
 ## 🌐 Live Preview
 
+> #### **Try it now:** <br> 
+
+#### **1. [Gas-Booking-System] → https://gas.nithishkps.workers.dev**
+
 <div align="center">
-
-> ### **Try it now:** <br> 
-
-### **1. [Gas-Booking-System] → https://gas.nithishkps.workers.dev**
-
 
 | Role  | Username | Password   |
 | :---- | :------- | :--------- |
@@ -48,14 +47,15 @@
 
 > 💡 [Sign Up](https://gas.nithishkps.workers.dev/signup) is also fully functional for new customers.
 
-<br>
+</div>
 
-### **2. [MySQL-Admin] → https://gas.nithishkps.workers.dev/mysql**
+#### **2. [MySQL-Admin] → https://gas.nithishkps.workers.dev/mysql**
+
+<div align="center">
 
 🔑 **MySQL Direct Login:** `admin` / `admin123`
 
 > ⚡ **Seamless Access:** Admins logged into the dashboard can open the MySQL panel no need log in again.
-
 
 </div>
 
