@@ -889,7 +889,7 @@
           <label>Email *</label>
           <div class="input-wrap">
             <input type="email" id="s-email" placeholder="Enter your email" required autocomplete="email"
-              oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9@._-]/g, '')">
+              oninput="(function(el){ var i=el.value.indexOf('@'); el.value = i!==-1 ? (el.value.slice(0,i+1)+el.value.slice(i+1).replace(/@/g,'')).toLowerCase() : el.value.toLowerCase(); })(this)">
             <span class="ico">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -1218,8 +1218,14 @@
 
       let emailTimer;
       document.getElementById('s-email').addEventListener('input', function () {
+        // Enforce only one @ - strip extras
+        const atIdx = this.value.indexOf('@');
+        if (atIdx !== -1) {
+          this.value = this.value.slice(0, atIdx + 1) + this.value.slice(atIdx + 1).replace(/@/g, '');
+        }
         this.value = this.value.toLowerCase();
-        const ok = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(this.value);
+        const atCount = (this.value.match(/@/g) || []).length;
+        const ok = atCount === 1 && /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(this.value);
         const errEl = document.getElementById('serr-email');
         this.classList.remove('input-error');
         errEl.textContent = 'Enter a valid email address';
@@ -1346,7 +1352,7 @@
       if (!uname || !/^[a-zA-Z0-9_]{3,20}$/.test(uname)) {
         msg.innerHTML = '<span class="msg-error">✗ Username must be 3–20 characters (letters, numbers, _)</span>'; return;
       }
-      if (!email || !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      if (!email || (email.match(/@/g)||[]).length !== 1 || !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email)) {
         msg.innerHTML = '<span class="msg-error">✗ Enter a valid email address</span>'; return;
       }
       if (pwd.length < 8) {

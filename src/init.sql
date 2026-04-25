@@ -9,18 +9,20 @@ USE `gasbook`;
 
 -- ── Users ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
-    user_id   INT          AUTO_INCREMENT PRIMARY KEY,
-    username  VARCHAR(50)  NOT NULL UNIQUE,
-    password  VARCHAR(255) NOT NULL,
-    role      ENUM('admin','staff','customer') NOT NULL DEFAULT 'staff',
-    status    ENUM('active','inactive') NOT NULL DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    user_id     INT          AUTO_INCREMENT PRIMARY KEY,
+    username    VARCHAR(50)  NOT NULL UNIQUE,
+    password    VARCHAR(255) NOT NULL,
+    role        ENUM('admin','staff','customer') NOT NULL DEFAULT 'staff',
+    status      ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    customer_id VARCHAR(20)  NULL,
+    created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT IGNORE INTO users (username, password, role) VALUES
-    ('admin', 'admin123', 'admin'),
-    ('staff', 'staff123', 'staff'),
-    ('customer', 'customer123', 'customer');
+-- Default Accounts
+INSERT IGNORE INTO users (username, password, role, customer_id) VALUES
+    ('admin',    'admin123',    'admin',    NULL),
+    ('staff',    'staff123',    'staff',    NULL),
+    ('customer', 'customer123', 'customer', 'CUST0001');
 
 -- ── cylinder_types ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS cylinder_types (
@@ -52,15 +54,23 @@ INSERT IGNORE INTO ware_houses (name, location) VALUES
 CREATE TABLE IF NOT EXISTS customers (
     customer_id    VARCHAR(20)  PRIMARY KEY,
     name           VARCHAR(100),
-    phone          VARCHAR(15)  UNIQUE,
+    phone          VARCHAR(15),
     email          VARCHAR(100),
     address        TEXT,
     aadhar_no      VARCHAR(20),
     status         ENUM('active','inactive') DEFAULT 'active',
-    customer_since   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    source         ENUM('signup','admin') NOT NULL DEFAULT 'admin',
+    customer_since TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_bookings INT DEFAULT 0,
     total_spent    DECIMAL(12,2) DEFAULT 0.00
 );
+
+-- Default Customer Profile
+INSERT IGNORE INTO customers (customer_id, name, phone, email, address, source) VALUES
+    ('CUST0001', 'Demo Customer', NULL, NULL, NULL, 'signup');
+
+
+-- ── delivery_boys ───────────────────────────────────────────────────────────
 
 -- ── delivery_boys ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS delivery_boys (

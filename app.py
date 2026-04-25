@@ -469,6 +469,14 @@ def ware_houses_page():
 def reports_page():
     return send_from_directory(_HTML_DIR, 'src/dashboard.html')
 
+@app.route('/admin-accounts', methods=['GET'])
+def admin_accounts_page():
+    if not session.get('user_id'):
+        return redirect('/?redirect=/admin-accounts')
+    if session.get('role') != 'admin':
+        return redirect('/dashboard')
+    return send_from_directory(_HTML_DIR, 'src/dashboard.html')
+
 @app.route('/create-account', methods=['GET'])
 def create_account_page():
     if not session.get('user_id'):
@@ -869,11 +877,6 @@ def _rewrite_adminer_location(location: str) -> str:
         m = re.search(r'^https?://[^/]+(?P<path>/.*)?$', location)
         location = m.group('path') if (m and m.group('path')) else '/'
 
-    if location.startswith(ADMINER_UPSTREAM):
-        return '/mysql' + location[len(ADMINER_UPSTREAM):]
-    if location.startswith('/'):
-        if location.startswith('/mysql'):
-            return location
         return '/mysql' + location
     return location
 
@@ -1952,6 +1955,11 @@ def login():
         logger.error(f"Login error: {e}")
         return db_error(str(e))
 
+@app.route('/logout', methods=['GET'])
+def logout_get():
+    session.clear()
+    return redirect('/')
+
 @app.route('/api/logout', methods=['POST'])
 def logout():
     user_id = session.get('user_id')
@@ -2205,6 +2213,124 @@ def create_user_full():
     except Error as e:
         conn.rollback(); conn.close()
         return db_error(str(e))
+
+# ── Admin: List Staff & Admins ────────────────────────────────────────────────
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    user_id, role, _, _ = _get_user_context()
+    if not user_id or role != 'admin':
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    conn = get_db()
+    if not conn: return db_error()
+    try:
+        cur = conn.cursor(dictionary=True)
+        # Show staff and admins (using their own columns)
+        cur.execute(
+            'SELECT user_id, username, role, status, created_at, full_name, email, phone '
+            'FROM users '
+            'WHERE role IN ("admin", "staff") '
+            'ORDER BY role ASC, username ASC'
+        )
+        rows = cur.fetchall()
+        _serialize_db_data(rows)
+        cur.close(); conn.close()
+        return jsonify({'success': True, 'data': rows})
+    except Error as e:
+        conn.close(); return db_error(str(e))
+
+@app.route('/api/users/<int:uid>', methods=['GET'])
+def get_user_single(uid):
+    user_id, role, _, _ = _get_user_context()
+    if not user_id or role != 'admin':
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    conn = get_db()
+    if not conn: return db_error()
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute(
+            'SELECT user_id, username, role, status, created_at, full_name, email, phone '
+            'FROM users '
+            'WHERE user_id = %s LIMIT 1', (uid,)
+        )
+        row = cur.fetchone()
+        _serialize_db_data(row)
+        cur.close(); conn.close()
+        if not row: return jsonify({'success': False, 'message': 'User not found'}), 404
+        return jsonify({'success': True, 'data': row})
+    except Error as e:
+        conn.close(); return db_error(str(e))
+
+@app.route('/api/users/<int:uid>', methods=['PUT'])
+def update_user_api(uid):
+    user_id, role, _, _ = _get_user_context()
+    if not user_id or role != 'admin':
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    data = request.get_json(force=True, silent=True) or {}
+    new_role = (data.get('role') or '').strip()
+    status   = (data.get('status') or 'active').strip()
+    name     = (data.get('name') or '').strip()
+    email    = (data.get('email') or '').strip().lower()
+    phone    = (data.get('phone') or '').strip()
+    address  = (data.get('address') or '').strip()
+    aadhar   = (data.get('aadhar_no') or '').replace('-', '').strip()
+
+    if new_role and new_role not in ('admin', 'staff'):
+        return jsonify({'success': False, 'message': 'Invalid role'}), 400
+
+    conn = get_db()
+    if not conn: return db_error()
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute('SELECT customer_id FROM users WHERE user_id=%s', (uid,))
+        usr = cur.fetchone()
+        if not usr:
+            cur.close(); conn.close()
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        cid = usr['customer_id']
+
+        # Update user table with profile fields
+        up_u = "UPDATE users SET role=%s, status=%s, full_name=%s, email=%s, phone=%s WHERE user_id=%s"
+        cur.execute(up_u, (new_role, status, format_name(name) if name else None, email or None, phone or None, uid))
+        
+        conn.commit(); cur.close(); conn.close()
+        return jsonify({'success': True, 'message': 'Account updated successfully'})
+    except Error as e:
+        conn.rollback(); conn.close(); return db_error(str(e))
+
+@app.route('/api/users/<int:uid>', methods=['DELETE'])
+def delete_user_api(uid):
+    user_id, role, _, _ = _get_user_context()
+    if not user_id or role != 'admin':
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    if uid == user_id:
+        return jsonify({'success': False, 'message': 'Cannot delete yourself'}), 400
+
+    conn = get_db()
+    if not conn: return db_error()
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute('SELECT customer_id FROM users WHERE user_id=%s', (uid,))
+        usr = cur.fetchone()
+        if not usr:
+            cur.close(); conn.close()
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        cid = usr['customer_id']
+
+        # Delete user
+        cur.execute('DELETE FROM users WHERE user_id=%s', (uid,))
+        if cid:
+            cur.execute('DELETE FROM customers WHERE customer_id=%s', (cid,))
+        
+        conn.commit(); cur.close(); conn.close()
+        return jsonify({'success': True, 'message': 'User deleted successfully'})
+    except Error as e:
+        conn.rollback(); conn.close(); return db_error(str(e))
 
 
 
@@ -2964,7 +3090,8 @@ def reset_database_api():
         cur.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.commit()
         cur.close(); conn.close()
-        return jsonify({'success': True, 'message': 'Database reset successfully. Refresh page.'})
+        initialize_database()
+        return jsonify({'success': True, 'message': 'System reset to default successfully. Refresh page.'})
     except Error as e:
         if 'conn' in locals() and conn: conn.close()
         return db_error(str(e))
@@ -3103,16 +3230,14 @@ def initialize_database():
         except Error:
             pass  # already exists
             
+        # Patch users table for management fields
         try:
-            cur.execute("ALTER TABLE users DROP INDEX username")
+            cur.execute("ALTER TABLE users ADD COLUMN full_name VARCHAR(100) NULL AFTER status")
+            cur.execute("ALTER TABLE users ADD COLUMN email VARCHAR(100) NULL AFTER full_name")
+            cur.execute("ALTER TABLE users ADD COLUMN phone VARCHAR(15) NULL AFTER email")
             conn.commit()
         except Error:
-            pass
-        try:
-            cur.execute("ALTER TABLE customers DROP INDEX phone")
-            conn.commit()
-        except Error:
-            pass
+            pass # ignore if already altered
 
         # Remove audit_log table by requirement.
         try:

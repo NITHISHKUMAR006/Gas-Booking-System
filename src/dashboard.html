@@ -991,6 +991,13 @@
       color: var(--flame);
     }
 
+    .badge-flame {
+      background: rgba(255, 107, 43, .22);
+      color: var(--flame);
+      font-weight: 700;
+      border: 1px solid rgba(255, 107, 43, .15);
+    }
+
     .badge-green {
       background: rgba(52, 211, 153, .14);
       color: var(--ok);
@@ -2422,6 +2429,17 @@
             </svg></div>
           <span>Create Account</span>
         </div>
+        <div class="nav-item admin-cta-nav" id="nav-admin-accounts" onclick="nav('admin-accounts',this)"
+          style="display:none;">
+          <div class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg></div>
+          <span>Staff & Admins</span>
+        </div>
         <div class="nav-item admin-cta-nav" id="nav-mysql" onclick="openMySQLPage()" style="display:none;">
           <div class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2">
@@ -2436,7 +2454,7 @@
               stroke-width="2.5">
               <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg></div>
-          <span style="color:#ef4444; font-weight: 600;">Reset Database</span>
+          <span style="color:#ef4444; font-weight: 600;">Reset Defaults</span>
         </div>
       </nav>
     </aside>
@@ -2641,6 +2659,56 @@
             </div>
           </div>
           <div class="pager" id="cust-pager"></div>
+        </div>
+
+        <!-- ADMIN ACCOUNTS -->
+        <div class="section" id="sec-admin-accounts">
+          <div
+            style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:12px;width:100%;">
+            <input class="search-input" id="user-search" placeholder="🔍  Search username, name or role…"
+              style="height:38px;flex:1;min-width:200px;max-width:360px;box-sizing:border-box;font-size:13px;padding:0 14px;border-radius:10px;"
+              oninput="debounce(loadUsers,400)()">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <div id="user-bulk-bar" style="display:none;gap:6px;">
+                <button class="btn btn-danger" onclick="deleteSelected('user-table','user')">🗑 Delete Selected</button>
+              </div>
+              <button class="btn btn-primary"
+                onclick="nav('create-account', document.getElementById('nav-create-account'))">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add User
+              </button>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-head">
+              <span class="table-title">Administrative Accounts</span>
+              <span id="user-count" style="font-size:12px;color:var(--muted)"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="no-sort" style="width: 40px; text-align: center;"><input type="checkbox"
+                        onclick="toggleSelectAll(this, 'user-table')"></th>
+                    <th onclick="sortTable('user-table',1)">Username</th>
+                    <th onclick="sortTable('user-table',2)">Full Name</th>
+                    <th onclick="sortTable('user-table',3)">Role</th>
+                    <th onclick="sortTable('user-table',4)">Status</th>
+                    <th onclick="sortTable('user-table',5)">Joined</th>
+                    <th class="no-sort">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="user-table">
+                  <tr class="empty-row">
+                    <td colspan="6">Loading…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
         <!-- BOOKINGS -->
         <div class="section" id="sec-bookings">
@@ -3196,6 +3264,49 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="modal-user">
+    <div class="modal">
+      <div class="modal-hdr">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--flame)" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+          <span id="user-modal-title">Edit User Account</span>
+        </div>
+        <div class="modal-close" onclick="closeModal('modal-user')">×</div>
+      </div>
+      <div class="form-grid">
+        <input type="hidden" id="u-id" value="">
+        <div class="fgroup"><label>Role *</label>
+          <select id="u-role">
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Status *</label>
+          <select id="u-status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="fgroup full" style="margin-top:10px;border-top:1px solid var(--bdr);padding-top:15px;">
+          <label style="color:var(--muted);font-size:10px;letter-spacing:.08em;">PROFILE INFORMATION</label>
+        </div>
+        <div class="fgroup"><label>Full Name</label><input id="u-name" placeholder="Enter full name"></div>
+        <div class="fgroup"><label>Email</label><input id="u-email" type="email" placeholder="Email address"></div>
+        <div class="fgroup"><label>Phone</label><input id="u-phone" maxlength="10" placeholder="10 digits"></div>
+        <div class="fgroup"><label>Aadhaar</label><input id="u-aadhar" placeholder="XXXX-XXXX-XXXX"
+            oninput="this.value = formatAadhaar(this.value).formatted"></div>
+        <div class="fgroup full"><label>Address</label><input id="u-address" placeholder="Enter address"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveUser()" id="saveUserBtn">Save Changes</button>
+        <button class="btn btn-ghost" onclick="closeModal('modal-user')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -3225,7 +3336,8 @@
       'book-table': new Set(),
       'del-table': new Set(),
       'inv-table': new Set(),
-      'wh-table': new Set()
+      'wh-table': new Set(),
+      'user-table': new Set()
     };
 
     function saveSelection(tableId) {
@@ -3236,11 +3348,12 @@
     }
 
     function restoreSelection(tableId) {
-      const s = _selection[tableId]; if (!s || !s.size) return;
+      const s = _selection[tableId]; if (!s || !s.size) { updateBulkBar(tableId); return; }
       document.querySelectorAll('#' + tableId + ' .row-checkbox').forEach(cb => {
         if (s.has(cb.value)) cb.checked = true;
       });
       syncSelectAll(tableId);
+      updateBulkBar(tableId);
     }
 
     function syncSelectAll(tableId) {
@@ -3274,12 +3387,18 @@
 
     const _bulkBarMap = {
       'cust-table': 'cust-bulk-bar', 'book-table': 'book-bulk-bar',
-      'del-table': 'del-bulk-bar', 'inv-table': 'inv-bulk-bar', 'wh-table': 'wh-bulk-bar'
+      'del-table': 'del-bulk-bar', 'inv-table': 'inv-bulk-bar', 'wh-table': 'wh-bulk-bar',
+      'user-table': 'user-bulk-bar'
     };
 
     function updateBulkBar(tableId) {
-      const bar = document.getElementById(_bulkBarMap[tableId]); if (!bar) return;
-      bar.style.display = document.querySelectorAll('#' + tableId + ' .row-checkbox:checked').length > 0 ? 'flex' : 'none';
+      const barId = _bulkBarMap[tableId];
+      const bar = document.getElementById(barId);
+      if (!bar) return;
+
+      const checkedCount = [...document.querySelectorAll('#' + tableId + ' .row-checkbox:checked')]
+        .filter(cb => cb.offsetParent !== null && !cb.disabled).length;
+      bar.style.display = checkedCount > 0 ? 'flex' : 'none';
     }
 
     function wireCheckboxes(tableId) {
@@ -3473,7 +3592,7 @@
         // Admin: show System Admin section and all cta navs
         const adminSec = document.getElementById('nav-sec-admin');
         if (adminSec) adminSec.style.display = '';
-        ['nav-create-account', 'nav-mysql', 'nav-reset-db'].forEach(id => {
+        ['nav-create-account', 'nav-admin-accounts', 'nav-mysql', 'nav-reset-db'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.style.display = '';
         });
@@ -3498,7 +3617,7 @@
 
       // Read page from URL pathname (e.g. /bookings → bookings)
       let pathPage = window.location.pathname.replace(/^\//, '') || 'dashboard';
-      const validPages = ['dashboard', 'customers', 'bookings', 'deliveries', 'inventory', 'ware_houses', 'reports', 'settings', 'create-account'];
+      const validPages = ['dashboard', 'customers', 'bookings', 'deliveries', 'inventory', 'ware_houses', 'reports', 'settings', 'create-account', 'admin-accounts'];
       if (validPages.includes(pathPage)) currentPage = pathPage;
       if (currentPage === 'create-account' && !isAdminUser) {
         currentPage = 'dashboard';
@@ -3544,6 +3663,7 @@
       reports: { title: 'Reports', sub: 'Revenue & booking analytics' },
       settings: { title: 'Settings', sub: 'Account preferences & profile' },
       'create-account': { title: 'Create Account', sub: 'Register new users — Admin only' },
+      'admin-accounts': { title: 'Administrative Accounts', sub: 'Manage system administrators and staff' },
     };
     function nav(page, el, isInitial = false) {
       const role = (JSON.parse(localStorage.getItem('gasbook_user') || '{}')).role || '';
@@ -3589,7 +3709,8 @@
       else if (p === 'warehouses') loadWarehouses();
       else if (p === 'reports') loadReports();
       else if (p === 'settings') loadSettings();
-      else if (p === 'create-account') { /* static form, no load needed */ }
+      else if (p === 'create-account') { /* static form */ }
+      else if (p === 'admin-accounts') loadUsers();
     }
 
     function refreshCurrent() {
@@ -4076,6 +4197,108 @@
       toast('Sending to printer…', 'info');
     }
 
+    async function loadUsers() {
+      const q = document.getElementById('user-search').value.trim().toLowerCase();
+      try {
+        const d = await apiFetch('/users');
+        if (!d.success) {
+          document.getElementById('user-table').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">⚠ Failed to load accounts</td></tr>`;
+          return;
+        }
+        document.getElementById('user-count').textContent = `${d.data.length} total`;
+
+        const filtered = d.data.filter(u =>
+          u.username.toLowerCase().includes(q) ||
+          (u.name && u.name.toLowerCase().includes(q)) ||
+          u.role.toLowerCase().includes(q)
+        );
+
+        const allRows = filtered.map(u => `
+          <tr data-id="${u.user_id}">
+            <td style="text-align:center;"><input type="checkbox" class="row-checkbox" value="${u.user_id}"></td>
+            <td><strong>${u.username}</strong></td>
+            <td>${u.name || '—'}</td>
+            <td><span class="badge ${u.role === 'admin' ? 'badge-flame' : 'badge-blue'}">${u.role.toUpperCase()}</span></td>
+            <td>${u.status === 'active' ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Inactive</span>'}</td>
+            <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="openUserModal(${u.user_id})" title="Edit" style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.user_id}, '${u.username}')" title="Delete" style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Delete</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        saveSelection('user-table');
+        document.getElementById('user-table').innerHTML = allRows || `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">No accounts found</td></tr>`;
+        applyTableSort('user-table');
+        wireCheckboxes('user-table');
+        restoreSelection('user-table');
+      } catch (e) { console.error(e); }
+    }
+
+    async function openUserModal(uid) {
+      document.getElementById('u-id').value = uid;
+      document.getElementById('user-modal-title').textContent = 'Edit Administrative Account';
+      document.getElementById('saveUserBtn').textContent = 'Save Changes';
+
+      try {
+        const d = await apiFetch('/users/' + uid);
+        if (!d.success) return toast(d.message, 'error');
+        const u = d.data;
+        document.getElementById('u-role').value = u.role;
+        document.getElementById('u-status').value = u.status;
+        document.getElementById('u-name').value = u.name || '';
+        document.getElementById('u-email').value = u.email || '';
+        document.getElementById('u-phone').value = u.phone || '';
+        document.getElementById('u-address').value = u.address || '';
+        document.getElementById('u-aadhar').value = u.aadhar_no ? formatAadhaar(u.aadhar_no).formatted : '';
+
+        openModal('modal-user');
+      } catch (e) { toast('Error loading user data', 'error'); }
+    }
+
+    async function saveUser() {
+      const uid = document.getElementById('u-id').value;
+      const data = {
+        role: document.getElementById('u-role').value,
+        status: document.getElementById('u-status').value,
+        name: document.getElementById('u-name').value.trim(),
+        email: document.getElementById('u-email').value.trim(),
+        phone: document.getElementById('u-phone').value.trim(),
+        address: document.getElementById('u-address').value.trim(),
+        aadhar_no: document.getElementById('u-aadhar').value.trim().replace(/-/g, '')
+      };
+
+      const btn = document.getElementById('saveUserBtn');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      try {
+        const d = await apiFetch('/users/' + uid, { method: 'PUT', body: JSON.stringify(data) });
+        if (d.success) {
+          toast('User updated successfully', 'success');
+          closeModal('modal-user');
+          loadUsers();
+        } else toast(d.message, 'error');
+      } catch (e) { toast('Failed to update user', 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Save Changes'; }
+    }
+
+    async function deleteUser(uid, username) {
+      const self = JSON.parse(localStorage.getItem('gasbook_user') || '{}');
+      if (uid == self.user_id) return toast('Cannot delete your own account', 'warn');
+
+      if (!confirm(`Are you sure you want to delete account "${username}"? This cannot be undone.`)) return;
+
+      try {
+        const d = await apiFetch('/users/' + uid, { method: 'DELETE' });
+        if (d.success) {
+          toast('Account deleted', 'success');
+          loadUsers();
+        } else toast(d.message, 'error');
+      } catch (e) { toast('Failed to delete account', 'error'); }
+    }
+
     async function loadCustomers(silent = false) {
       const q = document.getElementById('cust-search').value.trim();
       const userRole = (JSON.parse(localStorage.getItem('gasbook_user') || '{}')).role || 'customer';
@@ -4133,7 +4356,7 @@
     }
 
     function isValidPhone(v) { return /^\d{10}$/.test(v); }
-    function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+    function isValidEmail(v) { return (v.match(/@/g) || []).length === 1 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
     function isValidAadhar(v) { return /^\d{12}$/.test(v); }
     function setErr(id, show) { document.getElementById(id).classList.toggle('show', show); }
     function setInputState(el, ok) {
@@ -4185,7 +4408,13 @@
       });
 
       document.getElementById('c-email').addEventListener('input', function () {
-        this.value = this.value.toLowerCase();
+        // Strip extra @ — only the first one is allowed
+        const atIdx = this.value.indexOf('@');
+        if (atIdx !== -1) {
+          this.value = this.value.slice(0, atIdx + 1).toLowerCase() + this.value.slice(atIdx + 1).toLowerCase().replace(/@/g, '');
+        } else {
+          this.value = this.value.toLowerCase();
+        }
         const ok = isValidEmail(this.value);
         if (this.value.length > 0) { setInputState(this, ok); setErr('err-email', !ok); }
         else { setInputState(this, null); setErr('err-email', false); document.getElementById('dup-email').style.display = 'none'; return; }
@@ -5089,15 +5318,22 @@
         };
 
         const checkChanges = async (e) => {
-          const hasChanges =
-            document.getElementById('s-name').value !== window._initialSettings.name ||
-            document.getElementById('s-phone').value !== window._initialSettings.phone ||
-            document.getElementById('s-email').value !== window._initialSettings.email ||
-            document.getElementById('s-address').value !== window._initialSettings.address ||
-            document.getElementById('s-aadhar').value !== window._initialSettings.aadhar;
+          const nameVal = document.getElementById('s-name').value.trim();
+          const phoneVal = document.getElementById('s-phone').value.trim();
+          const emailVal = document.getElementById('s-email').value.trim();
+          const addrVal = document.getElementById('s-address').value.trim();
+          const aadharVal = document.getElementById('s-aadhar').value.replace(/\D/g, '');
+
+          // All fields must be non-empty and in correct format
+          const allValid =
+            nameVal.length > 0 &&
+            isValidPhone(phoneVal) &&
+            isValidEmail(emailVal) &&
+            addrVal.length > 0 &&
+            isValidAadhar(aadharVal);
 
           let hasErrors = document.querySelectorAll('#sec-settings .err-input').length > 0;
-          if (saveBtn) saveBtn.disabled = !hasChanges || hasErrors;
+          if (saveBtn) saveBtn.disabled = !allValid || hasErrors;
 
           if (e && e.target) {
             const el = e.target;
@@ -5108,7 +5344,7 @@
               const errDiv = document.getElementById('err-dup-' + id.replace('s-', '') + '-s');
               if (errDiv) errDiv.style.display = 'none';
               hasErrors = document.querySelectorAll('#sec-settings .err-input').length > 0;
-              if (saveBtn) saveBtn.disabled = !hasChanges || hasErrors;
+              if (saveBtn) saveBtn.disabled = !allValid || hasErrors;
               return;
             }
 
@@ -5132,7 +5368,7 @@
                     if (errDiv) errDiv.style.display = 'none';
                   }
                   hasErrors = document.querySelectorAll('#sec-settings .err-input').length > 0;
-                  if (saveBtn) saveBtn.disabled = !hasChanges || hasErrors;
+                  if (saveBtn) saveBtn.disabled = !allValid || hasErrors;
                 } catch (err) { }
               }, 500);
             }
@@ -5146,7 +5382,13 @@
         });
 
         document.getElementById('s-email').addEventListener('input', function () {
-          this.value = this.value.toLowerCase();
+          // Enforce only one @ — strip any extras
+          const atIdx = this.value.indexOf('@');
+          if (atIdx !== -1) {
+            this.value = this.value.slice(0, atIdx + 1).toLowerCase() + this.value.slice(atIdx + 1).toLowerCase().replace(/@/g, '');
+          } else {
+            this.value = this.value.toLowerCase();
+          }
         });
 
       } catch (e) { toast('Could not load profile', 'error'); }
@@ -5336,7 +5578,7 @@
       clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3800);
     }
     async function resetDatabase() {
-      if (!confirm('CRITICAL WARNING: This will PERMANENTLY DELETE all bookings, customers, and transaction data. Only seed data will remain. Are you absolutely sure?')) return;
+      if (!confirm('CRITICAL WARNING: This will RESET DEFAULT settings and PERMANENTLY DELETE all bookings, customers, and data. Only initial accounts will remain. Are you absolutely sure?')) return;
 
       const btn = event.currentTarget;
       const origText = btn.innerHTML;
@@ -5412,24 +5654,57 @@
     async function deleteSelected(tableId, type) {
       const checked = [...document.querySelectorAll('#' + tableId + ' .row-checkbox:checked')]
         .filter(cb => cb.offsetParent !== null && !cb.disabled);
-      // If nothing is explicitly selected, do nothing silently.
-      if (!checked.length) return;
+
+      if (!checked.length) {
+        // Hide bulk bar if nothing selected
+        const barId = _bulkBarMap[tableId];
+        if (barId) {
+          const bar = document.getElementById(barId);
+          if (bar) bar.style.display = 'none';
+        }
+        return;
+      }
+
       if (!confirm('Delete ' + checked.length + ' selected ' + type + '(s)?')) return;
+
       let ok = 0, fail = 0;
       for (const cb of checked) {
         const id = cb.value;
         try {
-          const endpoint = type === 'customer' ? '/customers/' + id : '/bookings/' + id;
+          let endpoint = '';
+          if (type === 'customer') endpoint = '/customers/' + id;
+          else if (type === 'booking') endpoint = '/bookings/' + id;
+          else if (type === 'user') endpoint = '/users/' + id;
+
           const d = await apiFetch(endpoint, { method: 'DELETE' });
           if (d.success) ok++; else fail++;
         } catch (e) { fail++; }
       }
+
       toast((ok ? ok + ' deleted' : '') + (fail ? (ok ? ', ' : '') + fail + ' failed' : ''), ok ? 'success' : 'error');
+
       if (ok) {
+        // Clear selection state
         if (_selection[tableId]) _selection[tableId].clear();
-        updateBulkBar(tableId);
+
+        // Uncheck header checkbox
+        const headerCb = document.querySelector('#' + tableId)?.closest('table')?.querySelector('thead input[type=checkbox]');
+        if (headerCb) {
+          headerCb.checked = false;
+          headerCb.indeterminate = false;
+        }
+
+        // Hide bulk bar immediately
+        const barId = _bulkBarMap[tableId];
+        if (barId) {
+          const bar = document.getElementById(barId);
+          if (bar) bar.style.display = 'none';
+        }
+
+        // Reload data
         if (type === 'customer') { loadCustomers(); updateBadges(); }
         else if (type === 'booking') { loadBookings(); updateBadges(); }
+        else if (type === 'user') { loadUsers(); }
       }
     }
 
