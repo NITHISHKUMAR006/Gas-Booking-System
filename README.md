@@ -652,7 +652,7 @@ git push origin feature/amazing-feature
 
 ### ⭐ If GasBook helped you, consider starring the repo!
 
-Built with ❤️ by <b><a href="https://github.com/NITHISHKUMAR006">Nithishkumar S</a> 🔥</b>
+Built with ❤️ by <b><a href="https://github.com/NITHISHKUMAR006">Nithishkumar S</a> </b>
 
 <a href="#"><img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=100&section=footer"/></a>
 
