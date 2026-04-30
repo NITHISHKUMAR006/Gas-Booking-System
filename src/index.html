@@ -983,6 +983,14 @@
   </div>
 
   <script>
+    async function hashSHA256(message) {
+      if (!message) return '';
+      const msgUint8 = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     const API = window.location.origin + '/api';
 
     function toggleTheme() {
@@ -1113,11 +1121,12 @@
       btn.innerHTML = '<span class="spinner"></span>Signing in…';
 
       try {
+        const hashed_p = await hashSHA256(p);
         const res = await fetch(`${API}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ username: u, password: p })
+          body: JSON.stringify({ username: u, password: hashed_p })
         });
         const data = await res.json();
 
@@ -1126,7 +1135,6 @@
           localStorage.setItem('gasbook_user', JSON.stringify({
             user_id: data.user_id,
             username: data.username,
-            full_name: data.full_name,
             role: data.role,
             c_id: data.c_id
           }));
@@ -1376,10 +1384,11 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Creating Account…';
       try {
+        const hashed_pwd = await hashSHA256(pwd);
         const res = await fetch(`${API}/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: uname, email, password: pwd })
+          body: JSON.stringify({ username: uname, email, password: hashed_pwd })
         });
         const data = await res.json();
         if (data.success) {

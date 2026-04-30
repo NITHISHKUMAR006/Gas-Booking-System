@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Default Accounts
 INSERT IGNORE INTO users (username, password, full_name, role, customer_id) VALUES
-    ('admin',    'admin123',    'Primary Admin',    'admin',    NULL),
-    ('staff',    'staff123',    'Primary Staff',    'staff',    NULL),
-    ('customer', 'customer123', 'Demo Customer',    'customer', 'CUST0001');
+    ('admin',    SHA2('admin123', 256),    'Primary Admin',    'admin',    NULL),
+    ('staff',    SHA2('staff123', 256),    'Primary Staff',    'staff',    NULL),
+    ('customer', SHA2('customer123', 256), 'Demo Customer',    'customer', 'CUST0001');
 
 -- ── cylinder_types ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS cylinder_types (

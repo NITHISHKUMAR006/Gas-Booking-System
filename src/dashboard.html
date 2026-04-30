@@ -2566,7 +2566,8 @@
               </svg>
             </button>
             <div class="top-user-dropdown" id="profileDropdown">
-              <div class="top-user-info" onclick="goToSettings()" title="Go to Settings">
+              <div class="top-user-info" onclick="goToSettings()" title="Go to Settings" style="display: flex; flex-direction: column;">
+                <span style="font-size: 10px; color: var(--muted); margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Profile Settings</span>
                 <div class="top-u-name" id="user-name">Admin</div>
                 <div class="top-u-role" id="user-role">admin</div>
               </div>
@@ -3349,6 +3350,14 @@
   </div>
 
   <script>
+    async function hashSHA256(message) {
+      if (!message) return '';
+      const msgUint8 = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     // ── Avatar helper: shows initial letter when user name is known,
     //    otherwise reverts to the SVG person silhouette ──────────────────────
     const _avatarSVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -4253,7 +4262,7 @@
 
         const filtered = d.data.filter(u =>
           u.username.toLowerCase().includes(q) ||
-          (u.name && u.name.toLowerCase().includes(q)) ||
+          (u.full_name && u.full_name.toLowerCase().includes(q)) ||
           u.role.toLowerCase().includes(q)
         );
 
@@ -4261,7 +4270,7 @@
           <tr data-id="${u.user_id}">
             <td style="text-align:center;"><input type="checkbox" class="row-checkbox" value="${u.user_id}"></td>
             <td><strong>${u.username}</strong></td>
-            <td>${u.name || '—'}</td>
+            <td>${u.full_name || '—'}</td>
             <td><span class="badge ${u.role === 'admin' ? 'badge-flame' : 'badge-blue'}">${u.role.toUpperCase()}</span></td>
             <td>${u.status === 'active' ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Inactive</span>'}</td>
             <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>

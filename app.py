@@ -2,10 +2,12 @@
 Gas Booking System - Backend  |  Flask + MySQL
 """
 
-from flask import Flask, request, jsonify, session, render_template_string, send_from_directory, redirect, Response
+from flask import Flask, request, jsonify, session, render_template_string, send_from_directory, redirect, Response, g, has_request_context
 from flask_cors import CORS
+from werkzeug.security import check_password_hash
+import hashlib
 import mysql.connector
-from mysql.connector import Error, IntegrityError
+from mysql.connector import Error, IntegrityError, pooling
 from datetime import datetime, date, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo
@@ -178,9 +180,9 @@ def perform_db_repair():
 
             # 2. Restore User Accounts (admin, staff, customer)
             for u, p, n, r, cid in [
-                ('admin',    'admin123',    'Primary Admin',    'admin',    None), 
-                ('staff',    'staff123',    'Primary Staff',    'staff',    None), 
-                ('customer', 'customer123', 'Demo Customer',    'customer', 'CUST0001')
+                ('admin',    hashlib.sha256('admin123'.encode('utf-8')).hexdigest(),    'Primary Admin',    'admin',    None), 
+                ('staff',    hashlib.sha256('staff123'.encode('utf-8')).hexdigest(),    'Primary Staff',    'staff',    None), 
+                ('customer', hashlib.sha256('customer123'.encode('utf-8')).hexdigest(), 'Demo Customer',    'customer', 'CUST0001')
             ]:
                 cur.execute("SELECT user_id, password, role, status, full_name FROM users WHERE username = %s", (u,))
                 row = cur.fetchone()
@@ -197,8 +199,15 @@ def perform_db_repair():
                 cur.execute("INSERT IGNORE INTO customers (customer_id, name, source, status) VALUES (%s, %s, %s, %s)", ('CUST0001', 'Demo Customer', 'signup', 'active'))
             else:
                 cur.execute("UPDATE customers SET status = 'active', name = 'Demo Customer' WHERE customer_id = 'CUST0001' AND (status != 'active' OR name != 'Demo Customer')")
+            
+            cur.close()
+            conn.commit()
     except Exception as e:
         logger.debug(f"DB Repair background error: {e}")
+    finally:
+        if 'conn' in locals() and conn:
+            try: conn.close()
+            except: pass
 
 @app.before_request
 def realtime_db_repair():
@@ -1901,21 +1910,61 @@ def format_name(s):
     return ' '.join(w[0].upper() + w[1:] if w else '' for w in str(s).strip().split(' ')) if s else ""
 
 # ── DB connection ─────────────────────────────────────────────────────────────
+_DB_POOL = None
+
+def init_db_pool():
+    global _DB_POOL
+    if _DB_POOL is None:
+        try:
+            _DB_POOL = pooling.MySQLConnectionPool(
+                pool_name="gasbook_pool",
+                pool_size=16,
+                pool_reset_session=True,
+                host=app.config['MYSQL_HOST'],
+                user=app.config['MYSQL_USER'],
+                password=app.config['MYSQL_PASSWORD'],
+                database=app.config['MYSQL_DATABASE'],
+                port=app.config['MYSQL_PORT'],
+                autocommit=False,
+                connection_timeout=10,
+                auth_plugin='caching_sha2_password'
+            )
+        except Error as e:
+            logger.error(f"Failed to initialize connection pool: {e}")
+
+class RequestDBWrapper:
+    def __init__(self, real_conn):
+        self._conn = real_conn
+    def cursor(self, *args, **kwargs): return self._conn.cursor(*args, **kwargs)
+    def commit(self): return self._conn.commit()
+    def rollback(self): return self._conn.rollback()
+    def close(self): pass
+    def really_close(self): self._conn.close()
+
 def get_db():
+    global _DB_POOL
+    if _DB_POOL is None:
+        init_db_pool()
     try:
-        return mysql.connector.connect(
-            host=app.config['MYSQL_HOST'],
-            user=app.config['MYSQL_USER'],
-            password=app.config['MYSQL_PASSWORD'],
-            database=app.config['MYSQL_DATABASE'],
-            port=app.config['MYSQL_PORT'],
-            autocommit=False,
-            connection_timeout=10,
-            auth_plugin='caching_sha2_password'
-        )
+        if has_request_context():
+            if 'db_conn' not in g:
+                real = _DB_POOL.get_connection()
+                g.db_conn = RequestDBWrapper(real)
+            return g.db_conn
+        else:
+            if _DB_POOL is not None:
+                return _DB_POOL.get_connection()
+            return None
     except Error as e:
-        logger.error(f"DB connection failed: {e}")
+        logger.error(f"DB connection failed (pool exhaust): {e}")
         return None
+
+@app.teardown_request
+def teardown_db_on_request_end(exception=None):
+    db_wrapper = g.pop('db_conn', None)
+    if db_wrapper:
+        try: db_wrapper.really_close()
+        except: pass
 
 def db_error(msg='Database connection failed'):
     return jsonify({'success': False, 'message': msg}), 500
@@ -1940,7 +1989,8 @@ def ensure_customer_role():
         cur.execute("SELECT user_id, customer_id FROM users WHERE username = 'customer'")
         u_row = cur.fetchone()
         if not u_row:
-            cur.execute("INSERT INTO users (username, password, role) VALUES ('customer', 'customer123', 'customer')")
+            hashed_pw = hashlib.sha256('customer123'.encode('utf-8')).hexdigest()
+            cur.execute("INSERT INTO users (username, password, role) VALUES ('customer', %s, 'customer')", (hashed_pw,))
             user_id = cur.lastrowid
             conn.commit()
         else:
@@ -2051,17 +2101,37 @@ def login():
     try:
         cur = conn.cursor(dictionary=True)
         cur.execute(
-            'SELECT users.user_id, users.username, users.role, users.full_name, customers.email AS c_email, '
+            'SELECT users.user_id, users.username, users.role, users.full_name, users.password, customers.email AS c_email, '
             'COALESCE(users.customer_id, customers.customer_id) AS c_id FROM users '
             'LEFT JOIN customers ON customers.customer_id = users.customer_id OR customers.email = %s OR customers.email = users.username '
-            'WHERE (users.username=%s OR customers.email=%s) AND users.password=%s '
+            'WHERE (users.username=%s OR customers.email=%s) '
             'AND users.status="active" AND users.role IN ("admin","staff","customer") LIMIT 1',
-            (username, username, username, password)
+            (username, username, username)
         )
         user = cur.fetchone()
+
+        valid_password = False
+        if user:
+            db_password = str(user['password'])
+            input_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+            
+            if db_password == input_hash:
+                valid_password = True
+            elif db_password.startswith('pbkdf2:') or db_password.startswith('scrypt:'):
+                valid_password = check_password_hash(db_password, password)
+                if valid_password:
+                    cur.execute("UPDATE users SET password = %s WHERE user_id = %s", (input_hash, user['user_id']))
+                    conn.commit()
+            else:
+                # Legacy plaintext check - upgrade silently
+                if db_password == password:
+                    valid_password = True
+                    cur.execute("UPDATE users SET password = %s WHERE user_id = %s", (input_hash, user['user_id']))
+                    conn.commit()
+
         cur.close(); conn.close()
 
-        if user:
+        if valid_password:
             session.permanent = True
             session['user_id']   = user['user_id']
             session['username']  = user['username']
@@ -2172,8 +2242,9 @@ def register():
             cur.close(); conn.close()
             return jsonify({'success': False, 'message': 'This email is already registered. Please log in.'}), 409
 
+        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
         cur.execute('INSERT INTO users (username, password, role, status) VALUES (%s, %s, %s, %s)',
-            (username, password, 'customer', 'active'))
+            (username, hashed_password, 'customer', 'active'))
         user_id = cur.lastrowid
 
         cur.execute('SELECT COUNT(*) AS c FROM customers')
@@ -2246,8 +2317,9 @@ def create_user():
             cur.close(); conn.close()
             return jsonify({'success': False, 'message': f'Username "{username}" is already taken'}), 409
 
+        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
         cur.execute('INSERT INTO users (username, password, role, status) VALUES (%s, %s, %s, %s)',
-                    (username, password, role, 'active'))
+                    (username, hashed_password, role, 'active'))
         conn.commit(); cur.close(); conn.close()
         return jsonify({'success': True, 'message': f'{role.capitalize()} account created for {username}'}), 201
     except IntegrityError as e:
@@ -2316,8 +2388,9 @@ def create_user_full():
                 cur.close(); conn.close()
                 return jsonify({'success': False, 'message': 'Aadhaar number already registered'}), 409
 
+        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
         cur.execute('INSERT INTO users (username, password, role, status) VALUES (%s, %s, %s, %s)',
-                    (username, password, role, 'active'))
+                    (username, hashed_password, role, 'active'))
         user_id = cur.lastrowid
 
         # Create customer profile for all roles
@@ -3408,9 +3481,9 @@ def initialize_database():
 
         # ── Ensure Default User Accounts Exist ──
         defaults = [
-            ('admin',    'admin123',    'Primary Admin',    'admin',    None),
-            ('staff',    'staff123',    'Primary Staff',    'staff',    None),
-            ('customer', 'customer123', 'Demo Customer',    'customer', 'CUST0001')
+            ('admin',    hashlib.sha256('admin123'.encode('utf-8')).hexdigest(),    'Primary Admin',    'admin',    None),
+            ('staff',    hashlib.sha256('staff123'.encode('utf-8')).hexdigest(),    'Primary Staff',    'staff',    None),
+            ('customer', hashlib.sha256('customer123'.encode('utf-8')).hexdigest(), 'Demo Customer',    'customer', 'CUST0001')
         ]
         for u, p, n, r, cid in defaults:
             cur.execute("SELECT user_id FROM users WHERE username = %s", (u,))

@@ -45,6 +45,8 @@
 | 👔 Staff | `staff`  | `staff123` |
 | 👤 Customer | `customer` | `customer123` |
 
+> 🔒 **Security Notice:** All user passwords are securely hashed using **SHA-256** encryption in the database.
+
 > 💡 [Sign Up](https://gas.nithishkps.workers.dev/signup) is also fully functional for new customers.
 
 </div>
@@ -79,6 +81,12 @@
 - Top-right profile dropdown
 - Fully responsive across devices
 - CSS variable-driven theming
+
+### 🔒 **Security & Authentication**
+- **SHA-256 Password Hashing**
+- Secure Session Management
+- MySQL Connection Pooling
+- Anti-DDoS & Rate Limiting
 
 ### 👥 **Customer Management**
 - Full CRUD with live validation
