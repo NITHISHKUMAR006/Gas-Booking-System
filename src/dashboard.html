@@ -3329,8 +3329,10 @@
           <label style="color:var(--muted);font-size:10px;letter-spacing:.08em;">PROFILE INFORMATION</label>
         </div>
         <div class="fgroup"><label>Full Name</label><input id="u-name" placeholder="Enter full name"></div>
-        <div class="fgroup"><label>Email</label><input id="u-email" type="email" placeholder="Email address"></div>
-        <div class="fgroup"><label>Phone</label><input id="u-phone" maxlength="10" placeholder="10 digits"></div>
+        <div class="fgroup"><label>Email</label><input id="u-email" type="email" placeholder="Email address"
+            oninput="var i=this.value.indexOf('@');if(i!==-1)this.value=this.value.slice(0,i+1)+this.value.slice(i+1).replace(/@/g,'');this.value=this.value.toLowerCase().replace(/[^a-z0-9@._-]/g,'');validateUserEmail();">
+          <div id="u-email-err" style="display:none;color:#ef4444;font-size:11px;margin-top:4px;">Invalid email format (e.g. example@domain.com)</div></div>
+        <div class="fgroup"><label>Phone</label><input id="u-phone" type="tel" maxlength="10" placeholder="10 digits" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"></div>
         <div class="fgroup"><label>Aadhaar</label><input id="u-aadhar" placeholder="XXXX-XXXX-XXXX"
             oninput="this.value = formatAadhaar(this.value).formatted"></div>
         <div class="fgroup full"><label>Address</label><input id="u-address" placeholder="Enter address"></div>
@@ -3338,6 +3340,29 @@
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveUser()" id="saveUserBtn">Save Changes</button>
         <button class="btn btn-ghost" onclick="closeModal('modal-user')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-view-user">
+    <div class="modal" style="max-width:750px; width: 95%;">
+      <div class="modal-hdr" style="margin-bottom:12px; padding-bottom:0; border-bottom:none;">
+        <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Account Details
+        </div>
+        <div class="modal-close" onclick="closeModal('modal-view-user')">×</div>
+      </div>
+      <div class="modal-tools" id="view-user-tools"
+        style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--bdr);">
+      </div>
+      <div class="form-grid" id="view-user-body" style="gap: 20px;">Loading…</div>
+      <div class="form-actions" style="margin-top: 24px;">
+        <button class="btn btn-primary" onclick="closeModal('modal-view-user')">Close</button>
       </div>
     </div>
   </div>
@@ -4269,13 +4294,14 @@
         const allRows = filtered.map(u => `
           <tr data-id="${u.user_id}">
             <td style="text-align:center;"><input type="checkbox" class="row-checkbox" value="${u.user_id}"></td>
-            <td><strong>${u.username}</strong></td>
-            <td>${u.full_name || '—'}</td>
+            <td style="cursor:pointer;color:var(--flame);" onclick="viewUser(${u.user_id})"><strong>${u.username}</strong></td>
+            <td style="cursor:pointer;color:var(--flame);" onclick="viewUser(${u.user_id})">${u.full_name || '—'}</td>
             <td><span class="badge ${u.role === 'admin' ? 'badge-flame' : 'badge-blue'}">${u.role.toUpperCase()}</span></td>
             <td>${u.status === 'active' ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Inactive</span>'}</td>
             <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
             <td>
               <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="viewUser(${u.user_id})" title="View" style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View</button>
                 <button class="btn btn-ghost btn-sm" onclick="openUserModal(${u.user_id})" title="Edit" style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.user_id}, '${u.username}')" title="Delete" style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Delete</button>
               </div>
@@ -4291,6 +4317,129 @@
       } catch (e) { console.error(e); }
     }
 
+    async function viewUser(uid) {
+      try {
+        const d = await apiFetch('/users/' + uid);
+        if (!d.success || !d.data) { toast(d.message || 'User not found', 'error'); return; }
+        const u = d.data;
+        window._viewUserData = u;
+
+        document.getElementById('view-user-tools').innerHTML = `
+          <button class="mini-action-btn" id="view-user-copy-btn" onclick="copyViewedUser()" title="Copy account details">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy All</span>
+          </button>
+          <button class="mini-action-btn" onclick="editViewedUser()" title="Edit account">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>Edit</span>
+          </button>
+          <button class="mini-action-btn danger" onclick="deleteViewedUser()" title="Delete account">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            <span>Delete</span>
+          </button>
+        `;
+
+        const valName = u.full_name || '—';
+        const valUsername = u.username || '—';
+        const valRole = u.role ? u.role.toUpperCase() : '—';
+        const valUserId = u.user_id;
+        const valEmail = u.email || '—';
+        const valPhone = u.phone || '—';
+        const valStatus = u.status || 'active';
+        const valJoined = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
+
+        const mkCopy = (val) => {
+          if (!val || val === '—') return '';
+          const safeVal = String(val).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          return `<button onclick="copyInlineText(this, '${safeVal}')" title="Copy" style="background:none; border:none; cursor:pointer; color:var(--muted); padding:0; margin-left:6px; vertical-align:-2px; display:inline-block; transition:color 0.2s;" onmouseover="this.style.color='var(--flame)'" onmouseout="this.style.color='var(--muted)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>`;
+        };
+
+        const buildRow = (label, value, customHtml = null) => `
+          <div style="display:flex; align-items:flex-start; margin-bottom:12px;">
+            <strong style="width:105px; flex-shrink:0; line-height:1.5;">${label}:</strong>
+            <div style="flex:1; min-width:0; line-height:1.5; overflow-wrap:break-word;">
+              ${customHtml || value}${mkCopy(value)}
+            </div>
+          </div>
+        `;
+
+        const roleBadge = u.role === 'admin' ? '<span class="badge badge-flame">ADMIN</span>' : '<span class="badge badge-blue">STAFF</span>';
+
+        const html = `
+          <div style="font-size:14px; color: var(--txt);">
+            ${buildRow('Full Name', valName)}
+            ${buildRow('Username', valUsername)}
+            ${buildRow('Role', valRole, roleBadge)}
+            ${buildRow('User ID', String(valUserId), `<span style="font-family:monospace;color:var(--flame)">${valUserId}</span>`)}
+            ${buildRow('Email', valEmail)}
+            ${buildRow('Phone', valPhone)}
+            
+            <div style="margin: 16px 0; border-top: 1px dashed var(--bdr);"></div>
+            
+            <div style="display:flex; align-items:flex-start; margin-bottom:12px;">
+              <strong style="width:125px; flex-shrink:0;">Status:</strong>
+              <span>${valStatus === 'active' ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Inactive</span>'}</span>
+            </div>
+            <div style="display:flex; align-items:flex-start; margin-bottom:12px;">
+              <strong style="width:125px; flex-shrink:0;">Joined:</strong>
+              <span>${valJoined}</span>
+            </div>
+          </div>`;
+
+        document.getElementById('view-user-body').innerHTML = html;
+        openModal('modal-view-user');
+      } catch (e) { toast('Error loading user details', 'error'); console.error(e); }
+    }
+
+    async function copyViewedUser() {
+      const u = window._viewUserData;
+      if (!u) { toast('No account details to copy', 'warn'); return; }
+      const copyBtn = document.getElementById('view-user-copy-btn');
+      const original = copyBtn ? copyBtn.innerHTML : '';
+      try {
+        const lines = [
+          `Full Name: ${u.full_name || '—'}`,
+          `Username: ${u.username || '—'}`,
+          `Role: ${u.role ? u.role.toUpperCase() : '—'}`,
+          `User ID: ${u.user_id}`,
+          `Email: ${u.email || '—'}`,
+          `Phone: ${u.phone || '—'}`,
+          `Status: ${u.status || '—'}`,
+          `Joined: ${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}`
+        ];
+        await navigator.clipboard.writeText(lines.join('\n'));
+        toast('Account details copied!', 'success');
+        if (copyBtn) { copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Copied!</span>'; setTimeout(() => { copyBtn.innerHTML = original; }, 1500); }
+      } catch (e) { toast('Copy failed', 'error'); }
+    }
+
+    function editViewedUser() {
+      const u = window._viewUserData;
+      if (!u || !u.user_id) { toast('User not found', 'error'); return; }
+      closeModal('modal-view-user');
+      openUserModal(u.user_id);
+    }
+
+    async function deleteViewedUser() {
+      const u = window._viewUserData;
+      if (!u || !u.user_id) { toast('User not found', 'error'); return; }
+      const self = JSON.parse(localStorage.getItem('gasbook_user') || '{}');
+      if (u.user_id == self.user_id) return toast('Cannot delete your own account', 'warn');
+      if (!confirm(`Are you sure you want to delete account "${u.username}"? This cannot be undone.`)) return;
+      try {
+        const d = await apiFetch('/users/' + u.user_id, { method: 'DELETE' });
+        if (d.success) {
+          toast('Account deleted', 'success');
+          closeModal('modal-view-user');
+          loadUsers();
+        } else toast(d.message, 'error');
+      } catch (e) { toast('Delete failed', 'error'); }
+    }
+
     async function openUserModal(uid) {
       document.getElementById('u-id').value = uid;
       document.getElementById('user-modal-title').textContent = 'Edit Administrative Account';
@@ -4302,7 +4451,7 @@
         const u = d.data;
         document.getElementById('u-role').value = u.role;
         document.getElementById('u-status').value = u.status;
-        document.getElementById('u-name').value = u.name || '';
+        document.getElementById('u-name').value = u.full_name || u.name || '';
         document.getElementById('u-email').value = u.email || '';
         document.getElementById('u-phone').value = u.phone || '';
         document.getElementById('u-address').value = u.address || '';
@@ -4312,7 +4461,39 @@
       } catch (e) { toast('Error loading user data', 'error'); }
     }
 
+    function validateUserEmail() {
+      const inp = document.getElementById('u-email');
+      const err = document.getElementById('u-email-err');
+      const btn = document.getElementById('saveUserBtn');
+      const val = inp ? inp.value.trim() : '';
+      if (val.length === 0) {
+        if (inp) inp.classList.remove('err-input');
+        if (err) err.style.display = 'none';
+        if (btn) btn.disabled = false;
+        return true;
+      }
+      const atCount = (val.match(/@/g) || []).length;
+      const valid = atCount === 1 && /^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(val);
+      if (!valid) {
+        if (inp) inp.classList.add('err-input');
+        if (err) {
+          err.textContent = atCount > 1 ? 'Only one @ is allowed (e.g. example@domain.com)' : 'Invalid email format (e.g. example@domain.com)';
+          err.style.display = 'block';
+        }
+        if (btn) btn.disabled = true;
+        return false;
+      }
+      if (inp) inp.classList.remove('err-input');
+      if (err) err.style.display = 'none';
+      if (btn) btn.disabled = false;
+      return true;
+    }
+
     async function saveUser() {
+      if (!validateUserEmail()) {
+        toast('Please enter a valid email address (e.g. example@domain.com)', 'error');
+        return;
+      }
       const uid = document.getElementById('u-id').value;
       const data = {
         role: document.getElementById('u-role').value,
@@ -4409,7 +4590,7 @@
     }
 
     function isValidPhone(v) { return /^\d{10}$/.test(v); }
-    function isValidEmail(v) { return (v.match(/@/g) || []).length === 1 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+    function isValidEmail(v) { return /^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(v); }
     function isValidAadhar(v) { return /^\d{12}$/.test(v); }
     function setErr(id, show) { document.getElementById(id).classList.toggle('show', show); }
     function setInputState(el, ok) {

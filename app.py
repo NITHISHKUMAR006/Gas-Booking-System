@@ -564,7 +564,8 @@ _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 @app.route('/signup', methods=['GET'])
 def index():
     # If user is already logged in, redirect to dashboard
-    if session.get('user_id') and session.get('role'):
+    # Skip redirect if ?redirect= is present (avoids loop when localStorage is missing)
+    if session.get('user_id') and session.get('role') and not request.args.get('redirect'):
         return redirect('/dashboard')
     
     # If Adminer-style login params arrive at root, forward to /mysql proxy route.
@@ -1769,7 +1770,13 @@ MYSQL_LOGIN_PAGE = """<!DOCTYPE html>
         if (data.success && data.role === 'admin') {
           errorMsg.textContent = '✓ Login Successful!';
           errorMsg.classList.add('show', 'success');
-          const redirect = new URLSearchParams(window.location.search).get('redirect') || '/mysql';
+          localStorage.setItem('gasbook_user', JSON.stringify({
+            user_id: data.user_id,
+            username: data.username,
+            full_name: data.full_name,
+            role: data.role
+          }));
+          const redirect = new URLSearchParams(window.location.search).get('redirect') || '/dashboard';
           setTimeout(() => { window.location.href = redirect; }, 700);
         } else if (data.success) {
           errorMsg.textContent = '❌ Database access requires admin role';
@@ -1793,7 +1800,7 @@ def mysql_login():
     user_id = session.get('user_id')
     role = session.get('role')
     if user_id and role == 'admin':
-        return redirect(request.args.get('redirect', '/mysql'))
+        return redirect(request.args.get('redirect', '/dashboard'))
     return render_template_string(MYSQL_LOGIN_PAGE)
 
 
@@ -1812,11 +1819,12 @@ def mysql_login_api():
         return db_error()
 
     try:
+        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
         cur = conn.cursor(dictionary=True)
         cur.execute(
-            'SELECT user_id, username, role FROM users '
+            'SELECT user_id, username, full_name, role FROM users '
             'WHERE username=%s AND password=%s AND status="active" AND role="admin" LIMIT 1',
-            (username, password)
+            (username, hashed_password)
         )
         user = cur.fetchone()
         cur.close(); conn.close()
@@ -1828,9 +1836,10 @@ def mysql_login_api():
         session.permanent = True
         session['user_id'] = user['user_id']
         session['username'] = user['username']
+        session['full_name'] = user.get('full_name') or user['username']
         session['role'] = user['role']
         _log_audit(user['user_id'], user['username'], 'mysql_login', 'success')
-        return jsonify({'success': True, 'role': user['role'], 'message': 'MySQL login successful'})
+        return jsonify({'success': True, 'user_id': user['user_id'], 'username': user['username'], 'full_name': user.get('full_name') or user['username'], 'role': user['role'], 'message': 'MySQL login successful'})
     except Error as e:
         conn.close()
         logger.error(f"MySQL login error: {e}")
@@ -2224,6 +2233,8 @@ def register():
 
     if not email or not password:
         return jsonify({'success': False, 'message': 'Email and password are required'}), 400
+    if not re.match(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$', email):
+        return jsonify({'success': False, 'message': 'Invalid email format (e.g. example@domain.com)'}), 400
     if len(password) < 8:
         return jsonify({'success': False, 'message': 'Password must be at least 8 characters'}), 400
     if not username: username = email
@@ -2348,6 +2359,8 @@ def create_user_full():
 
     if not username or not email or not password:
         return jsonify({'success': False, 'message': 'Username, email and password are required'}), 400
+    if not re.match(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$', email.lower()):
+        return jsonify({'success': False, 'message': 'Invalid email format (e.g. example@domain.com)'}), 400
     if len(password) < 8:
         return jsonify({'success': False, 'message': 'Password must be at least 8 characters'}), 400
     if role not in ('admin', 'staff', 'customer'):
@@ -2568,8 +2581,8 @@ def get_profile():
     try:
         cur = conn.cursor(dictionary=True)
         cur.execute('''
-            SELECT u.user_id, u.username, u.role, u.customer_id,
-                   c.customer_id AS c_id, c.name, c.phone, c.email,
+            SELECT u.user_id, u.username, u.full_name, u.role, u.customer_id,
+                   c.customer_id AS c_id, COALESCE(c.name, u.full_name) AS name, c.phone, c.email,
                    c.address, c.aadhar_no, c.customer_since,
                    c.total_bookings, c.total_spent, c.status
             FROM users u
@@ -2636,8 +2649,8 @@ def update_profile():
         return jsonify({'success': False, 'message': 'Name is required'}), 400
     if not phone or not phone.isdigit() or len(phone) != 10:
         return jsonify({'success': False, 'message': 'Phone must be exactly 10 digits'}), 400
-    if email and '@' not in email:
-        return jsonify({'success': False, 'message': 'Invalid email format'}), 400
+    if email and not re.match(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$', email):
+        return jsonify({'success': False, 'message': 'Invalid email format (e.g. example@domain.com)'}), 400
     if aadhar and (not aadhar.isdigit() or len(aadhar) != 12):
         return jsonify({'success': False, 'message': 'Aadhaar must be exactly 12 digits'}), 400
 
@@ -2775,6 +2788,8 @@ def create_customer():
         return jsonify({'success': False, 'message': 'Name and phone are required'}), 400
     if not phone.isdigit() or len(phone) != 10:
         return jsonify({'success': False, 'message': 'Phone must be exactly 10 digits'}), 400
+    if email and not re.match(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$', email):
+        return jsonify({'success': False, 'message': 'Invalid email format (e.g. example@domain.com)'}), 400
     if aadhar and (not aadhar.isdigit() or len(aadhar) != 12):
         return jsonify({'success': False, 'message': 'Aadhaar must be exactly 12 digits'}), 400
 
